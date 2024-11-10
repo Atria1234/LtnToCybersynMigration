@@ -1,0 +1,15 @@
+{
+	"name": "LtnToCybersynMigration",
+	"version": "1.0.0",
+	"factorio_version": "2.0",
+	"title": "LtnToCybersynMigration",
+	"author": "Atria",
+	"contact": "tomas.chmelik2@gmail.com",
+	"homepage": "https://github.com/Atria1234/LtnToCybersynMigration",
+	"description": "Mod for migration from LTN to Project Cybersyn",
+	"dependencies": [
+        "cybersyn",
+        "!LogisticTrainNetwork",
+        "!LTN_Combinator_Modernized"
+	]
+}
