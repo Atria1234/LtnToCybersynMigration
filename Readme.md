@@ -5,6 +5,11 @@ Mod which attempts to migrate from LTN to Project Cybersyn.
 - [LogisticTrainNetwork](https://mods.factorio.com/mod/LogisticTrainNetwork) mod was used in Factorio 1.1
 - [LTN Combinator Modernized](https://mods.factorio.com/mod/LTN_Combinator_Modernized) mod was used in Factorio 1.1 to configure stations
 - [LTN Combinator Modernized](https://mods.factorio.com/mod/LTN_Combinator_Modernized)'s combinators were directly connected to LTN station input lamp
+- [Project cybersyn](https://mods.factorio.com/mod/cybersyn) mod is used in Factorio 2.0
+
+## Optional
+
+- [Cybersyn Combinator](https://mods.factorio.com/mod/cybersyn-combinator)'s combinator are going to be used to configure stations in Factorio 2.0. If not installed Vanilla constant combinators will be used instead
 
 # What this mod does
 
@@ -22,10 +27,11 @@ When "Migrate stations" is clicked, it first check every LTN stations on all sur
 GPS link is printed into ingame console for each station which doesn't satisfy any of these conditions.
 
 Then for each station which satisfies all conditions it does:
+
 - Replaces LTN train station with Vanilla train station
     - Sets train station's "trains limit" to whatever was configured in LTN combinator
-- Replaces LTN combinator with Vanilla constant combinator
-    - Separates control and request signals into two sections
+- Replaces LTN combinator with Cybersyn constant combinator or Vanilla constant combinator (if cybersyn-combinator mod is not installed)
+    - Separates control, request and network signals into three sections
     - Sets value of "A" virtual signal (used to set Network ID) from Network ID of LTN combinator
     - Sets value of "Station priority" virtual signal from Requester/Provider priority of LTN combinator
     - Sets value of "Request threshold" virtual signal from Request (or stack) threshold of LTN combinator if station is requester
@@ -43,6 +49,10 @@ Then for each station which satisfies all conditions it does:
 - Connects all entities connected to LTN station output combinator to output of Cybersyn combinator
 - Deletes LTN station input lamp
 - Deletes LTN station output combinator
+
+## Toggle trains
+
+In order to Cybersyn to start working the train needs to be set to manual mode and then to automatic mode again. This shortcut toggles mode of all trains which were previously in automatic mode.
 
 # Migration steps
 

@@ -136,15 +136,6 @@ local function migrate_stations_and_combinators()
                 player = station.last_user,
                 raise_built = true
             })
-            ltn_combinator = surface.create_entity({
-                name = 'constant-combinator',
-                position = ltn_combinator.position,
-                direction = ltn_combinator.direction,
-                force = ltn_combinator.force,
-                player = ltn_combinator.last_user,
-                fast_replace = true,
-                raise_built = true
-            })
 
             local train_limit = station_inputs[1].get_signal({ type = 'virtual', name = 'ltn-max-trains' }, defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green)
             if station.trains_limit == 4294967295 and train_limit > 0 then
@@ -195,36 +186,7 @@ local function migrate_stations_and_combinators()
             local provider_priority = station_inputs[1].get_signal({ type = 'virtual', name = 'ltn-provider-priority' }, defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green)
             local locked_slots = station_inputs[1].get_signal({ type = 'virtual', name = 'ltn-locked-slots' }, defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green)
 
-            -- separate request and control signals in different sections
-            local control_section = ltn_combinator.get_control_behavior().get_section(1)
-            local request_signals = {}
-            for _, filter in ipairs(control_section.filters) do
-                if filter.value.type ~= 'virtual' then
-                    table.insert(request_signals, filter)
-                end
-            end
-
             local control_signals = {}
-            table.insert(control_signals, {
-                value = {
-                    type = 'virtual',
-                    name = 'signal-A',
-                    quality = 'normal'
-                },
-                min = network_id
-            })
-
-            if is_requester and requester_priority ~= 0 or is_provider and provider_priority ~= 0 then
-                table.insert(control_signals, {
-                    value = {
-                        type = 'virtual',
-                        name = 'cybersyn-priority',
-                        quality = 'normal'
-                    },
-                    min = requester_priority ~= 0 and requester_priority or provider_priority
-                })
-            end
-
             if is_requester then
                 table.insert(control_signals, {
                     value = {
@@ -250,10 +212,63 @@ local function migrate_stations_and_combinators()
                 })
             end
 
-            control_section.filters = control_signals
-            if table_size(request_signals) > 0 then
-                ltn_combinator.get_control_behavior().add_section().filters = request_signals
+            if is_requester and requester_priority ~= 0 then
+                table.insert(control_signals, {
+                    value = {
+                        type = 'virtual',
+                        name = 'cybersyn-priority',
+                        quality = 'normal'
+                    },
+                    min = requester_priority
+                })
+            elseif is_provider and provider_priority ~= 0 then
+                table.insert(control_signals, {
+                    value = {
+                        type = 'virtual',
+                        name = 'cybersyn-priority',
+                        quality = 'normal'
+                    },
+                    min = provider_priority
+                })
             end
+
+            local ltn_combinator_behaviour = ltn_combinator.get_control_behavior()
+            local control_section = ltn_combinator_behaviour.get_section(1)
+            local request_signals = {}
+            for _, filter in ipairs(control_section.filters) do
+                if filter.value.type ~= 'virtual' then
+                    table.insert(request_signals, filter)
+                end
+            end
+
+            for i = ltn_combinator_behaviour.sections_count, 1, -1 do
+                ltn_combinator_behaviour.remove_section(i)
+            end
+            -- control section
+            ltn_combinator_behaviour.add_section().filters = control_signals
+            -- request section
+            ltn_combinator_behaviour.add_section().filters = request_signals
+            -- network section
+            ltn_combinator_behaviour.add_section().filters = {
+                {
+                    value = {
+                        type = 'virtual',
+                        name = 'signal-A',
+                        quality = 'normal'
+                    },
+                    min = network_id
+                }
+            }
+
+            surface.create_entity({
+                name = script.active_mods['cybersyn-combinator'] and 'cybersyn-constant-combinator' or 'constant-combinator',
+                position = ltn_combinator.position,
+                direction = ltn_combinator.direction,
+                force = ltn_combinator.force,
+                player = ltn_combinator.last_user,
+                fast_replace = true,
+                raise_built = true
+            })
 
             cybersyn_combinator.get_control_behavior().parameters = parameters
 
